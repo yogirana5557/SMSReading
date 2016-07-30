@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.sms.reading.BuildConfig;
 import com.sms.reading.SMSApplication;
 
 import org.json.JSONException;
@@ -95,8 +94,9 @@ public class ParseSms {
 
     private static ArrayList<ShortSms> parseSms(Context context, String shortName, String number, String origBody, Date date) {
         ShortSms sms = null;
+        SMSApplication.getInstance().setupRules();
         HashMap<String, ArrayList<Rule>> rulesMap = SMSApplication.getInstance().getRules();
-        ArrayList<Rule> rules2 = rulesMap.get(shortName.trim());
+        ArrayList<Rule> rules2 = (ArrayList) rulesMap.get(shortName.trim());
         ArrayList<ShortSms> smsList;
         if (rules2 != null) {
             String body = origBody.replaceAll("\\s{2,}", " ");
@@ -118,7 +118,7 @@ public class ParseSms {
                     }
                     Matcher matcher = rule.getPattern().matcher(matcherSmsBody);
                     if (matcher.find()) {
-                        matcherSmsBody = matcher.replaceFirst(BuildConfig.VERSION_NAME);
+                        matcherSmsBody = matcher.replaceFirst("");
                         Rule matchedRule = rule;
                         Log.d(TAG, "Matched " + matchedRule.getPatternUID());
                         int accType = Account.getAccountTypeInt(matchedRule.getAccountType());
@@ -165,7 +165,7 @@ public class ParseSms {
             ShortSms shortSms = new ShortSms(number, origBody, date);
             shortSms.setSmsType(9);
             shortSms.setAccountType(9);
-            shortSms.setCategories(((Rule) rules2.get(0)).getName(), "Messages");
+            shortSms.setCategories(rules2.get(0).getName(), "Messages");
             smsList.add(shortSms);
             return smsList;
         } else if (isBlackListed(context, origBody)) {

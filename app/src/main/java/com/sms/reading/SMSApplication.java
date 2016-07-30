@@ -1,6 +1,11 @@
 package com.sms.reading;
 
 import android.app.Application;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -15,6 +20,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,20 +56,38 @@ public class SMSApplication extends Application {
         this.ruleFileLock = new Object();
     }
 
-    public synchronized DBHelper getDbHelper() {
-        return this.mDBHelper;
-    }
-
-    public void onTerminate() {
-        super.onTerminate();
-        this.mDBHelper.close();
-    }
     public static synchronized SMSApplication getInstance() {
         SMSApplication walnutApp;
         synchronized (SMSApplication.class) {
             walnutApp = mInstance;
         }
         return walnutApp;
+    }
+
+    public static void broadcastReadSmsPermissionRequest(LocalBroadcastManager localBroadcastManager) {
+        localBroadcastManager.sendBroadcast(new Intent("walnut.app.REQUEST_FOR_READ_SMS_PERM"));
+    }
+
+    public static void broadcastProgress(LocalBroadcastManager localBroadcastManager, String progress) {
+        Intent intent = new Intent("walnut.app.WALNUT_PROGRESS");
+        intent.putExtra("walnut.app.WALNUT_PROGRESS_EXTRA_STRING", progress);
+        localBroadcastManager.sendBroadcast(intent);
+    }
+
+    public static void broadcastToast(LocalBroadcastManager localBroadcastManager, String msg) {
+        Intent intent = new Intent("walnut.app.WALNUT_TOAST");
+        intent.putExtra("walnut.app.WALNUT_TOAST_EXTRA_MSG", msg);
+        localBroadcastManager.sendBroadcast(intent);
+    }
+
+    public synchronized DBHelper getDbHelper() {
+        return this.mDBHelper;
+    }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        mDBHelper.close();
     }
 
     private String copyStreams(InputStream in, OutputStream out) throws IOException {
@@ -84,7 +109,8 @@ public class SMSApplication extends Application {
         synchronized (this.ruleFileLock) {
             if (this.mRules == null) {
                 try {
-                    FileInputStream fis = new FileInputStream(new File(getFilesDir(), rulesFileName));
+                    InputStream fis = getAssets().open("rules.json");
+//                    FileInputStream fis = new FileInputStream(new File(getFilesDir(),"rules.json"));
                     String rulesJson = copyStreams(fis, null);
                     fis.close();
                     setupRulesMap(rulesJson);
@@ -95,9 +121,11 @@ public class SMSApplication extends Application {
         }
     }
 
+
     private boolean setupRulesMap(String rulesString) {
         try {
             this.mRules = new HashMap<>();
+            this.mNameAccountMiscMap = new HashMap();
             JSONObject jSONObject = new JSONObject(rulesString);
             Log.d(TAG, "Using json Rules version : " + jSONObject.getString("version"));
             JSONArray rulesJArray = jSONObject.getJSONArray("rules");
@@ -162,11 +190,13 @@ public class SMSApplication extends Application {
     }
 
     public HashMap<String, ArrayList<Rule>> getRules() {
-        return this.mRules;
+        return mRules;
     }
+
     public String getBlackList() {
         return this.blackList;
     }
+
     public AccountMiscInfo getAccountMiscInfo(Account account) {
         if (account == null) {
             return null;
@@ -207,7 +237,6 @@ public class SMSApplication extends Application {
             return null;
         }
     }
-
 
     public ArrayList<AccountMiscInfo.BalanceContactInfo> getContactInfoFromJson(String balContactJson) {
         if (TextUtils.isEmpty(balContactJson)) {

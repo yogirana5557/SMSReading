@@ -4078,7 +4078,7 @@
             }
           }
         },
-         {
+        {
           "regex": "(?i)Thank you\\s.*Debit\\/atm Card.*ending\\s([0-9]{4})\\sfor\\s(?:INR|Rs)[\\.,\\s]*([\\d,]*\\.?\\d{0,2})\\sin\\s(?:.*) at\\s(\\+)(.*)on ([0-9-:]*)",
           "account_type": "debit_card",
           "pattern_UID": "10023",
@@ -4842,7 +4842,7 @@
                 {
                   "parent_field": "pan",
                   "child_field": {
-                      "field": "pan"
+                    "field": "pan"
                   },
                   "match_type": "exact"
                 },
@@ -9013,8 +9013,7 @@
           }
         },
         {
-          "regex":
-          "(?i)(?:INR|Rs)[\\.,\\s]*?([\\d,]*\\.?\\d{0,2})\\s?withdrawn.*?x*\\s?(\\d{4}).*at (.*).txn.*bal (?:INR|Rs)[\\.:,\\s]*([\\d,]+\\.?\\d{0,2})",
+          "regex": "(?i)(?:INR|Rs)[\\.,\\s]*?([\\d,]*\\.?\\d{0,2})\\s?withdrawn.*?x*\\s?(\\d{4}).*at (.*).txn.*bal (?:INR|Rs)[\\.:,\\s]*([\\d,]+\\.?\\d{0,2})",
           "account_type": "debit_card",
           "pattern_UID": "300002",
           "sort_UID": "300002",
@@ -9580,10 +9579,12 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 1,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd/mm/yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd/mm/yy HH:mm:ss"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -9868,14 +9869,16 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 2,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "MMMM dd, yy"
-              },
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "MMMM dd, yy"
+                },
                 {
                   "use_sms_time": false,
                   "format": "MMMM dd, yy 'at' hh:mm:ss a"
-                }]
+                }
+              ]
             },
             "pan": {
               "group_id": 1
@@ -9895,14 +9898,16 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 2,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "MMMM dd, yy"
-              },
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "MMMM dd, yy"
+                },
                 {
                   "use_sms_time": false,
                   "format": "MMMM dd, yy 'at' hh:mm:ss a"
-                }]
+                }
+              ]
             },
             "pan": {
               "group_id": 1
@@ -10625,10 +10630,12 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 1,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -10727,7 +10734,6 @@
                   "use_sms_time": true,
                   "format": "today"
                 }
-
               ]
             }
           }
@@ -11102,10 +11108,12 @@
             },
             "date": {
               "group_id": 3,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MM-yy,HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MM-yy,HH:mm:ss"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -11132,10 +11140,12 @@
             },
             "date": {
               "group_id": 3,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MM-yy,HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MM-yy,HH:mm:ss"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -11217,10 +11227,12 @@
             },
             "date": {
               "group_id": 1,
-              "formats": [{
-                "use_sms_time": true,
-                "format": "dd-MM-yy"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": true,
+                  "format": "dd-MM-yy"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -11248,10 +11260,12 @@
             },
             "date": {
               "group_id": 1,
-              "formats": [{
-                "use_sms_time": true,
-                "format": "dd-MM-yy"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": true,
+                  "format": "dd-MM-yy"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -11261,7 +11275,6 @@
             }
           }
         },
-
         {
           "regex": "(?i)(?:avl|available) (?:bal|balance) .* on ([\\d\\w\\-\\/\\:\\s]+)(?: ist) for .* (?:no|number)(?:\\.)* x+\\d*(\\d{4}).* (?:INR|Rs)*[\\.:,\\s|v]*([\\d,]+\\.?\\d{0,2})",
           "account_type": "bank",
@@ -11272,10 +11285,12 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 1,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -11315,7 +11330,7 @@
       ]
     },
     {
-        "patterns": [
+      "patterns": [
         {
           "regex": "(?i)[\\.:,\\s|v]*([\\d,]+\\.?\\d{0,2}) (?:INR|Rs) .* debited to .*(?: no | number | no. )\\d*x+\\d*(\\d{4}) (?:by|through) ([neft|rtgs].*)on ([\\d\\w\\-: ]*) now.* credit (?:INR|Rs) [\\.:,\\s|v]*([\\d,]+\\.?\\d{0,2})",
           "account_type": "bank",
@@ -11326,10 +11341,12 @@
             "transaction_type": "net_banking",
             "date": {
               "group_id": 4,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             },
             "pos": {
               "value": "Net Banking",
@@ -11359,10 +11376,12 @@
             "transaction_type": "net_banking",
             "date": {
               "group_id": 4,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             },
             "pos": {
               "value": "Net Banking",
@@ -11392,10 +11411,12 @@
           "data_fields": {
             "date": {
               "group_id": 4,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             },
             "pos": {
               "value": "Debit"
@@ -11440,7 +11461,6 @@
                   "value": "eft / atm card transaction.",
                   "pos_override": "Debit Card Swipe",
                   "acc_type_override": "debit_card"
-
                 },
                 {
                   "txn_type": "net_banking",
@@ -11470,10 +11490,12 @@
           "data_fields": {
             "date": {
               "group_id": 4,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             },
             "pos": {
               "value": "Debit"
@@ -11511,10 +11533,12 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 2,
-              "formats": [{
-                "use_sms_time": true,
-                "format": "dd-MMM-yyyy"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": true,
+                  "format": "dd-MMM-yyyy"
+                }
+              ]
             },
             "pan": {
               "group_id": 1
@@ -11534,10 +11558,12 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 1,
-              "formats": [{
-                "use_sms_time": true,
-                "format": "dd-MM-yyyy"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": true,
+                  "format": "dd-MM-yyyy"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -11573,10 +11599,12 @@
             },
             "date": {
               "group_id": 4,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             }
           }
         },
@@ -11590,10 +11618,12 @@
             "transaction_type": "credit",
             "date": {
               "group_id": 3,
-              "formats": [{
-                "use_sms_time": false,
-                "format": "dd-MMM-yy HH:mm:ss"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": false,
+                  "format": "dd-MMM-yy HH:mm:ss"
+                }
+              ]
             },
             "pan": {
               "group_id": 2
@@ -11616,10 +11646,12 @@
             "transaction_type": "balance",
             "date": {
               "group_id": 2,
-              "formats": [{
-                "use_sms_time": true,
-                "format": "dd-MMM-yyyy"
-              }]
+              "formats": [
+                {
+                  "use_sms_time": true,
+                  "format": "dd-MMM-yyyy"
+                }
+              ]
             },
             "pan": {
               "group_id": 1
@@ -12491,8 +12523,8 @@
     },
     {
       "name": "VIJAYA",
-      "patterns":[
-      {
+      "patterns": [
+        {
           "regex": "(?i)a\\/c no[\\.:,\\s]*x+(\\d{3}).* avl[\\.\\s]bal[\\.:,\\s](?:INR|Rs)*[\\.:,\\s]*([\\d,]*\\.?\\d{0,2})",
           "account_type": "bank",
           "pattern_UID": "550001",
@@ -12502,7 +12534,7 @@
             "transaction_type": "balance",
             "date": {
               "use_sms_time": true
-              },
+            },
             "pan": {
               "group_id": 1
             },
@@ -12581,29 +12613,28 @@
           "sort_UID": "550005",
           "sms_type": "transaction",
           "data_fields": {
-          "transaction_type": "net_banking",
-          "date": {
-            "use_sms_time": true
+            "transaction_type": "net_banking",
+            "date": {
+              "use_sms_time": true
             },
-          "pos": {
-            "value": "Debit",
-            "set_no_pos": true
-          },
-          "note": {
-            "group_id": 3
-          },
-          "amount": {
-            "group_id": 1
-          },
-          "pan": {
-            "group_id": 2
-          },
-          "account_balance": {
-            "group_id": 4
+            "pos": {
+              "value": "Debit",
+              "set_no_pos": true
+            },
+            "note": {
+              "group_id": 3
+            },
+            "amount": {
+              "group_id": 1
+            },
+            "pan": {
+              "group_id": 2
+            },
+            "account_balance": {
+              "group_id": 4
+            }
           }
-        }
-      },
-
+        },
         {
           "regex": "(?i)(?:INR|Rs)[\\.:,\\s]*([\\d,]+\\.?\\d{0,2}) withdrawn .* \\*+\\d+(\\d{4}).*details: (.*cheq.*|.*chq.*|self).tot.* avl amt:-(?:INR|Rs)*[\\.:,\\s]*([\\d,]+\\.?\\d{0,2})\\(([\\d\\-: ]+)\\)",
           "account_type": "bank",
@@ -12708,35 +12739,35 @@
             }
           }
         },
-      {
+        {
           "regex": "(?i)(?:INR|Rs)[\\.:,\\s]*([\\d,]+\\.?\\d{0,2}) withdrawn a\\/c[\\.:,\\s]*\\**\\d*(\\d{4}) (.*) bal.* avl[\\.:,\\s]*amt[\\.:,\\s]*(?:INR|Rs)*[\\.:,\\s]*([\\d,]+\\.?\\d{0,2})",
           "account_type": "bank",
           "pattern_UID": "550009",
           "sort_UID": "550009",
           "sms_type": "transaction",
           "data_fields": {
-          "transaction_type": "debit_card",
-          "date": {
-            "use_sms_time": true
+            "transaction_type": "debit_card",
+            "date": {
+              "use_sms_time": true
             },
-          "pos": {
-            "value": "Debit",
-            "set_no_pos": true
-          },
-          "note": {
-            "group_id": 3
-          },
-          "amount": {
-            "group_id": 1
-          },
-          "pan": {
-            "group_id": 2
-          },
-          "account_balance": {
-            "group_id": 4
+            "pos": {
+              "value": "Debit",
+              "set_no_pos": true
+            },
+            "note": {
+              "group_id": 3
+            },
+            "amount": {
+              "group_id": 1
+            },
+            "pan": {
+              "group_id": 2
+            },
+            "account_balance": {
+              "group_id": 4
+            }
           }
-        }
-      },
+        },
         {
           "regex": "(?i)(?:INR|Rs)[\\.:,\\s]*([\\d,]+\\.?\\d{0,2}) withdrawn .* \\*+\\d+(\\d{4}).*details: (.*).tot.* avl amt:-(?:INR|Rs)*[\\.:,\\s]*([\\d,]+\\.?\\d{0,2})\\(([\\d\\-: ]+)\\)",
           "account_type": "bank",
@@ -12744,8 +12775,8 @@
           "sort_UID": "550010",
           "sms_type": "transaction",
           "data_fields": {
-          "transaction_type": "net_banking",
-          "date": {
+            "transaction_type": "net_banking",
+            "date": {
               "group_id": 5,
               "formats": [
                 {
@@ -12754,50 +12785,50 @@
                 }
               ]
             },
-          "pos": {
-            "value": "Debit",
-            "set_no_pos": true
-          },
-          "note": {
-            "group_id": 3
-          },
-          "amount": {
-            "group_id": 1
-          },
-          "pan": {
-            "group_id": 2
-          },
-          "account_balance": {
-            "group_id": 4
+            "pos": {
+              "value": "Debit",
+              "set_no_pos": true
+            },
+            "note": {
+              "group_id": 3
+            },
+            "amount": {
+              "group_id": 1
+            },
+            "pan": {
+              "group_id": 2
+            },
+            "account_balance": {
+              "group_id": 4
+            }
           }
-        }
-      },
-      {
+        },
+        {
           "regex": "(?i)(?:INR|Rs)[\\.:,\\s]*([\\d,]+\\.?\\d{0,2}) withdrawn .* \\*+\\d+(\\d{4}).*details: (.*)",
           "account_type": "bank",
           "pattern_UID": "550011",
           "sort_UID": "550011",
           "sms_type": "transaction",
           "data_fields": {
-          "transaction_type": "net_banking",
-          "date": {
+            "transaction_type": "net_banking",
+            "date": {
               "use_sms_time": true
             },
-          "pos": {
-            "value": "Net Banking",
-            "set_no_pos": true
-          },
-          "note": {
-            "group_id": 3
-          },
-          "amount": {
-            "group_id": 1
-          },
-          "pan": {
-            "group_id": 2
+            "pos": {
+              "value": "Net Banking",
+              "set_no_pos": true
+            },
+            "note": {
+              "group_id": 3
+            },
+            "amount": {
+              "group_id": 1
+            },
+            "pan": {
+              "group_id": 2
+            }
           }
         }
-      }
       ],
       "sender_UID": "90000055",
       "senders": [
@@ -12805,7 +12836,7 @@
         "VIJBCC"
       ]
     },
-        {
+    {
       "patterns": [
         {
           "regex": "(?i).*a\\/c [a-z]+(\\d{4}).*debited.*(?:INR|Rs)[\\.,\\s]*([\\d,]*\\.?\\d{2}) on (\\d{2}\\-\\d{2}\\-\\d{4}\\s\\d{2}\\:\\d{2}\\:\\d{2}).*from (.*)\\..*(?:INR|Rs)[\\.,\\s]*([\\d,]*\\.?\\d{0,2})",

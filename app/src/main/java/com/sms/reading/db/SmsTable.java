@@ -3,19 +3,15 @@ package com.sms.reading.db;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.location.Location;
 import android.util.Log;
 
-import com.sms.reading.SMSApplication;
 import com.sms.reading.model.Account;
-import com.sms.reading.model.ParseSms;
 import com.sms.reading.model.ShortSms;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.UUID;
 
 public class SmsTable {
@@ -83,32 +79,6 @@ public class SmsTable {
         return sms;
     }
 
-    public static void searchOtpMessageAndEnableSplitFeature(Context context, SQLiteDatabase database) {
-        String str = "walnutSms";
-        SQLiteDatabase sQLiteDatabase = database;
-        Cursor c = sQLiteDatabase.query(str, new String[]{"sender", "date", "body"}, "sender LIKE '%Walnut'", null, null, null, "date DESC");
-        if (c != null) {
-            if (c.getCount() > 0) {
-                c.moveToFirst();
-                SMSApplication.getInstance().setupRules();
-                while (!c.isAfterLast()) {
-                    ArrayList<ShortSms> parsedSmsList = ParseSms.Parse(context, c.getString(c.getColumnIndexOrThrow("sender")), c.getString(c.getColumnIndexOrThrow("body")), new Date(c.getLong(c.getColumnIndexOrThrow("date"))));
-                    boolean found = false;
-                    if (parsedSmsList != null) {
-                        Iterator it = parsedSmsList.iterator();
-                        while (it.hasNext()) {
-                            ShortSms parsedSms = (ShortSms) it.next();
-
-                        }
-                    }
-
-                    c.moveToNext();
-                }
-            }
-            c.close();
-        }
-    }
-
     private static boolean isBlackListed(String body) {
         if (!body.matches("(?i).*[^a-z](password|otp|verification|activation|passcode)[^a-z].*")) {
             return false;
@@ -144,78 +114,12 @@ public class SmsTable {
         return this.database.insert("walnutSms", null, values);
     }
 
-    public long getCount() {
-        return DatabaseUtils.queryNumEntries(this.database, "walnutSms");
-    }
-
-    public long getParsedCount() {
-        return DatabaseUtils.longForQuery(this.database, "SELECT COUNT(*) FROM walnutSms WHERE parsed = '1'", null);
-    }
-
-    public ArrayList<ShortSms> getAllMessagesOfAccount(Account account) {
-        ArrayList<ShortSms> smslist = new ArrayList();
-        String[] selectionArgs = new String[]{String.valueOf(account.get_id())};
-        Cursor cursor = this.database.query("walnutSms", this.allColumns, "accountId =? AND smsFlags & 2 =0", selectionArgs, null, null, "_id DESC");
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            smslist.add(cursorToSms(cursor));
-            cursor.moveToNext();
-        }
-        cursor.close();
-        return smslist;
-    }
-
-    public ArrayList<ShortSms> getMessagesWithQuery(String query) {
-        ArrayList<ShortSms> smslist = new ArrayList();
-        Cursor cursor = this.database.rawQuery(query, null);
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            smslist.add(cursorToSms(cursor));
-            cursor.moveToNext();
-        }
-        cursor.close();
-        return smslist;
-    }
-
-
-    private long getExistingSmsId(String number, String body, Date date, int puid) {
-        String[] columns = new String[]{"_id"};
-        String[] selectionArgs = new String[]{String.valueOf(date.getTime()), number.toUpperCase(), body, String.valueOf(puid)};
-        long id = -1;
-        Cursor cursor = this.database.query("walnutSms", columns, "date =? AND sender =? AND body =? AND patternUID =? ", selectionArgs, null, null, null);
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            if (!cursor.isAfterLast()) {
-                id = (long) cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
-            }
-        }
-        if (cursor != null) {
-            cursor.close();
-        }
-        return id;
-    }
-
-
-    public Cursor getMessagesCursor(boolean unParsedOnly) {
-        String where = null;
-        if (unParsedOnly) {
-            where = "parsed='0' AND smsFlags & 2 =0";
-        }
-        return this.database.query("walnutSms", this.allColumns, where, null, null, null, "_id ASC");
-    }
-
     public int updateMessage(long _id, ContentValues values) {
         if (_id >= 0) {
             return this.database.update("walnutSms", values, "_id = " + _id, null);
         }
         Log.d(TAG, "****ERROR**** Did not update SMS : " + values);
         return -1;
-    }
-
-    public void updateSmsMarkAsReported(ShortSms shortSms) {
-        if (shortSms != null) {
-            this.database.execSQL("update walnutSms set smsFlags = smsFlags | 1 where _id = " + shortSms.get_id());
-        }
     }
 
     public ShortSms getSmsById(long _id) {
@@ -235,24 +139,6 @@ public class SmsTable {
         return newSms;
     }
 
-    public String getSmsUUID(long _id) {
-        Cursor cursor = this.database.query("walnutSms", new String[]{"UUID"}, "_id = " + _id, null, null, null, null);
-        if (cursor == null || cursor.getCount() <= 0) {
-            if (cursor != null) {
-                cursor.close();
-            }
-            return null;
-        }
-        cursor.moveToFirst();
-        String uuid = cursor.getString(0);
-        cursor.close();
-        return uuid;
-    }
-
-    public int deleteMessage(long _id) {
-        return this.database.delete("walnutSms", "_id = " + _id, null);
-    }
-
     public void refreshTable(SQLiteDatabase database) {
         database.beginTransaction();
         database.execSQL("drop table if exists walnutSms");
@@ -260,57 +146,6 @@ public class SmsTable {
         onCreate(database);
         database.setTransactionSuccessful();
         database.endTransaction();
-    }
-
-    public void updateAllShortSmsModifyCountFlag(long startTime, long endTime) {
-        StringBuilder builder = new StringBuilder(200);
-        builder.append("UPDATE walnutSms").append(" SET modifyCount = modifyCount + 1 ").append(" WHERE parsed = 0 ");
-        if (!(endTime == -1 && startTime == 0)) {
-            if (endTime == -1) {
-                builder.append(" AND date >= " + startTime);
-            } else {
-                builder.append(" AND date >= " + startTime);
-                builder.append(" AND date < " + endTime);
-            }
-        }
-        this.database.execSQL(builder.toString());
-    }
-
-
-    public long restoreSms(String UUID, ContentValues values) {
-        Cursor cursor = this.database.query("walnutSms", new String[]{"_id"}, "UUID =?", new String[]{UUID}, null, null, null);
-        if (cursor == null || cursor.getCount() <= 0) {
-            if (cursor != null) {
-                cursor.close();
-            }
-            long smsId = getExistingSmsId(values.getAsString("sender"), values.getAsString("body"), new Date(values.getAsLong("date").longValue()), values.getAsInteger("patternUID").intValue());
-            if (smsId == -1) {
-                smsId = this.database.insert("walnutSms", null, values);
-            }
-            return smsId;
-        }
-        cursor.moveToFirst();
-        long id = (long) cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
-        cursor.close();
-        return id;
-    }
-
-
-    public long getBackupCount(boolean backedUp) {
-        String whereClause;
-        if (backedUp) {
-            whereClause = "modifyCount == 0  AND parsed = 0 ";
-        } else {
-            whereClause = "modifyCount > 0  AND parsed = 0 ";
-        }
-        Cursor cursor = this.database.query("walnutSms", new String[]{"COUNT( _id)"}, whereClause, null, null, null, null);
-        cursor.moveToFirst();
-        int count = 0;
-        if (!cursor.isAfterLast()) {
-            count = cursor.getInt(0);
-        }
-        cursor.close();
-        return (long) count;
     }
 
     public ShortSms getSmsByUUID(String UUID) {
@@ -330,4 +165,29 @@ public class SmsTable {
         }
         return newSms;
     }
+
+    public boolean isDuplicate(String number, String body, Date date) {
+        int total = 0;
+        Cursor cursor = null;
+        try {
+            cursor = this.database.query("walnutSms", new String[]{"COUNT(_id) AS " + "total"}, "date =? AND sender =? AND body =? ", new String[]{String.valueOf(date.getTime()), number.toUpperCase(), body}, null, null, null);
+            cursor.moveToFirst();
+            total = cursor.getInt(cursor.getColumnIndex("total"));
+        } catch (SQLiteException ex) {
+            int count = body.codePointCount(0, body.length());
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < count; i++) {
+                builder.append(String.format("%04x", new Object[]{Integer.valueOf(body.codePointAt(i))}));
+                builder.append(" ");
+            }
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+        if (total > 0) {
+            return true;
+        }
+        return false;
+    }
+
 }
