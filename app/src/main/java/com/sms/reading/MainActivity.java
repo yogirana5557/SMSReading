@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
     private LocalBroadcastManager localBroadcastManager;
     private ProgressBar statusTopProgressBar;
     private TextView statusTopText;
-    private RecyclerView mRecyclerView;
 
     public MainActivity() {
         mWalnutReceiver = new BroadcastReceiver() {
@@ -76,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         statusTopProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         statusTopText = (TextView) findViewById(R.id.progressText);
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         startService();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         localBroadcastManager.registerReceiver(mWalnutReceiver, makeWalnutUpdatesIntentFilter());
@@ -136,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Service started");
         Intent walnutServiceIntent = new Intent(this, SMSReadService.class);
         walnutServiceIntent.setAction("walnut.service.NEW_DATA");
-        walnutServiceIntent.putExtra("walnut.service.timestamp", (long) 0);
+        walnutServiceIntent.putExtra("walnut.service.timestamp", (long) -1);
         walnutServiceIntent.putExtra("walnut.service.mode", 1);
         startService(walnutServiceIntent);
     }

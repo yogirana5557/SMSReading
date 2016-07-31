@@ -42,7 +42,6 @@ public class SMSApplication extends Application {
     private static SMSApplication mInstance;
     private final Object ruleFileLock;
     ;
-    private final String rulesFileName;
     private HashMap<String, ArrayList<Rule>> mRules;
     private String bankAliasRegex;
     private String blackList;
@@ -52,7 +51,6 @@ public class SMSApplication extends Application {
 
     public SMSApplication() {
         this.mRules = null;
-        this.rulesFileName = "rules.json";
         this.ruleFileLock = new Object();
     }
 
@@ -128,7 +126,7 @@ public class SMSApplication extends Application {
     private boolean setupRulesMap(String rulesString) {
         try {
             this.mRules = new HashMap<>();
-            this.mNameAccountMiscMap = new HashMap();
+            this.mNameAccountMiscMap = new HashMap<>();
             JSONObject jSONObject = new JSONObject(rulesString);
             Log.d(TAG, "Using json Rules version : " + jSONObject.getString("version"));
             JSONArray rulesJArray = jSONObject.getJSONArray("rules");

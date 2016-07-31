@@ -86,7 +86,7 @@ public class SMSReadService extends Service {
         msg.obj = intent;
         if (intent.getAction().equals("walnut.service.NEW_DATA")) {
             msg.what = 1;
-           mServiceHandler.sendMessage(msg);
+            mServiceHandler.sendMessage(msg);
         }
         return 3;
     }

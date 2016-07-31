@@ -124,12 +124,16 @@ public class ParseSms {
                         if (!(accType == 9999 || accType == 99)) {
                             try {
                                 if (matchedRule.getSmsType().equalsIgnoreCase("transaction")) {
+                                    Log.d(TAG, "this is transaction");
                                     //  sms = parseTransaction(matcher, matchedRule, number, origBody, body, date);
                                 } else if (matchedRule.getSmsType().equalsIgnoreCase("statement")) {
+                                    Log.d(TAG, "this is statement");
                                     //   sms = parseStatement(matcher, matchedRule, number, origBody, body, date);
                                 } else if (matchedRule.getSmsType().equalsIgnoreCase("event")) {
+                                    Log.d(TAG, "this is event");
                                     //    sms = parseEvent(matcher, matchedRule, number, origBody, body, date);
                                 } else if (matchedRule.getSmsType().equalsIgnoreCase("walnut")) {
+                                    Log.d(TAG, "this is walnut");
                                     //   sms = parseWalnutSms(context, matcher, matchedRule, origBody);
                                 }
                             } catch (RuntimeException e2) {
