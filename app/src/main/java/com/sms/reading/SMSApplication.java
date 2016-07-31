@@ -80,6 +80,10 @@ public class SMSApplication extends Application {
         localBroadcastManager.sendBroadcast(intent);
     }
 
+    public static void broadcastFinish(LocalBroadcastManager localBroadcastManager) {
+        localBroadcastManager.sendBroadcast(new Intent("walnut.app.WALNUT_FINISH"));
+    }
+
     public synchronized DBHelper getDbHelper() {
         return this.mDBHelper;
     }
@@ -110,7 +114,6 @@ public class SMSApplication extends Application {
             if (this.mRules == null) {
                 try {
                     InputStream fis = getAssets().open("rules.json");
-//                    FileInputStream fis = new FileInputStream(new File(getFilesDir(),"rules.json"));
                     String rulesJson = copyStreams(fis, null);
                     fis.close();
                     setupRulesMap(rulesJson);

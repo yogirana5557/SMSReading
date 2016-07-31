@@ -27,7 +27,7 @@ public class ParseSms {
         TAG = ParseSms.class.getSimpleName();
     }
 
-    public static String ParseSender(String number) {
+   /* public static String ParseSender(String number) {
         number = number.toUpperCase();
         if (number.matches("(?i)[A-Z]{2}-?[!,A-Z,0-9]{1,8}\\s*") || number.matches("(?i)[0-9]{1,7}\\s*")) {
             String[] names = number.split("-");
@@ -51,7 +51,7 @@ public class ParseSms {
             }
         }
         return null;
-    }
+    }*/
 
 
     public static ArrayList<ShortSms> Parse(Context context, String number, String body, Date date) {
@@ -65,7 +65,7 @@ public class ParseSms {
             return parseSms(context, names[1], number, body, date);
         }
         if (names.length != 1) {
-            ArrayList<ShortSms> list = new ArrayList();
+            ArrayList<ShortSms> list = new ArrayList<>();
             list.add(makeUnknownSMS(shortName, number, body, date));
             return list;
         } else if (number.matches("(?i)[0-9]{1,7}\\s*")) {
@@ -94,7 +94,6 @@ public class ParseSms {
 
     private static ArrayList<ShortSms> parseSms(Context context, String shortName, String number, String origBody, Date date) {
         ShortSms sms = null;
-        SMSApplication.getInstance().setupRules();
         HashMap<String, ArrayList<Rule>> rulesMap = SMSApplication.getInstance().getRules();
         ArrayList<Rule> rules2 = (ArrayList) rulesMap.get(shortName.trim());
         ArrayList<ShortSms> smsList;

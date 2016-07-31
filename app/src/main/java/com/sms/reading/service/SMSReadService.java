@@ -1,6 +1,5 @@
 package com.sms.reading.service;
 
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
@@ -20,9 +19,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.support.v4.app.NotificationCompat.Builder;
 
-import com.sms.reading.MainActivity;
 import com.sms.reading.SMSApplication;
 import com.sms.reading.db.AccountTable;
 import com.sms.reading.db.DBHelper;
@@ -62,32 +59,6 @@ public class SMSReadService extends Service {
         mBinder = new LocalBinder();
     }
 
-    private class WalnutServiceHandler extends Handler {
-        private final String TAG;
-        private SMSReadService service;
-        public WalnutServiceHandler(Looper looper, SMSReadService service) {
-            super(looper);
-            this.TAG = WalnutServiceHandler.class.getSimpleName();
-            this.service = service;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 1 /*1*/:
-                    handleReadDataAction(msg.arg1, (Intent) msg.obj);
-                    break;
-                case 2 /*2*/:
-                    handleReadDataAction(msg.arg1, (Intent) msg.obj);
-                    break;
-                case 10 /*10*/:
-                    getLooper().quit();
-                    break;
-                default:
-            }
-        }
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -103,7 +74,6 @@ public class SMSReadService extends Service {
         this.mServiceHandler = new WalnutServiceHandler(thread.getLooper(), this);
     }
 
-
     @Override
     public IBinder onBind(Intent intent) {
         return this.mBinder;
@@ -111,63 +81,14 @@ public class SMSReadService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Message msg = this.mServiceHandler.obtainMessage();
+        Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = startId;
         msg.obj = intent;
-        if (intent.getAction().equals("walnut.service.READ_DATA")) {
-            if (intent.getBooleanExtra("walnut.service.cancel", false)) {
-                mParseCancelled = true;
-                stopSelf(startId);
-                return 2;
-            }
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            notificationIntent.setAction("android.intent.action.MAIN");
-            notificationIntent.addCategory("android.intent.category.LAUNCHER");
-            startForeground(54321, new Builder(this.context).setContentTitle("Walnut Analysing").setContentText("Click to see progress").setSmallIcon(2130837898).setAutoCancel(true).setContentIntent(PendingIntent.getActivity(this, 0, notificationIntent, 0)).build());
-            msg.what = 2;
-            this.mServiceHandler.sendMessage(msg);
-            return 3;
-        } else if (intent.getAction().equals("walnut.service.NEW_DATA")) {
+        if (intent.getAction().equals("walnut.service.NEW_DATA")) {
             msg.what = 1;
-            this.mServiceHandler.sendMessage(msg);
-            return 3;
-        } else if (intent.getAction().equals("com.walnut.app.service.ALARM_BROADCAST")) {
-            msg.what = 6;
-            this.mServiceHandler.sendMessage(msg);
-            return 3;
-        } else if (intent.getAction().equals("com.walnut.app.service.BOOT_COMPLETE")) {
-            msg.what = 4;
-            this.mServiceHandler.sendMessage(msg);
-            return 3;
-        } else if (intent.getAction().equals("com.walnut.app.service.GCM_PUSH")) {
-            msg.what = 7;
-            this.mServiceHandler.sendMessage(msg);
-            return 3;
-        } else if (intent.getAction().equals("com.walnut.app.service.SETUP_ALARMS")) {
-            msg.what = 8;
-            this.mServiceHandler.sendMessage(msg);
-            return 3;
-        } else if (!intent.getAction().equals("walnut.service.customAction")) {
-            return 2;
-        } else {
-            msg.what = 9;
-            this.mServiceHandler.sendMessage(msg);
-            return 3;
+           mServiceHandler.sendMessage(msg);
         }
-    }
-
-    private void handleReadDataAction(int startId, Intent intent) {
-        int mode = intent.getExtras().getInt("walnut.service.mode", 0);
-        mParseCancelled = false;
-        if (mode == 1) {
-            long startTime = intent.getExtras().getLong("walnut.service.timestamp", -1);
-            if (!intent.getExtras().getBoolean("walnut.service.continueFromRestore", false)) {
-                dbhelper.cleanTables();
-            }
-            Log.d(TAG, "Read mode  = READ_MODE_FROM_SMS " + startTime);
-            String str = "Pref-LastReadSMS";
-            sp.edit().putLong(str, parseAllSmsFromProvider(startTime, null)).apply();
-        }
+        return 3;
     }
 
     private long parseAllSmsFromProvider(long lastRead, ShortSms ignoreSms) {
@@ -178,7 +99,7 @@ public class SMSReadService extends Service {
             Calendar cal = Calendar.getInstance();
             cal.setTimeInMillis(System.currentTimeMillis());
             cal.set(Calendar.DATE, 0);
-            cal.add(Calendar.MONTH, -6);
+            cal.add(Calendar.MONTH, -2);
             Log.d(TAG, "Fresh read from provider : reading only last 3 months data : " + cal.getTime() + " : " + new Date(System.currentTimeMillis()));
             lastRead = cal.getTimeInMillis();
         }
@@ -187,7 +108,7 @@ public class SMSReadService extends Service {
         boolean dateSentNotPresent = false;
         try {
             c = getContentResolver().query(uri, columns, "date_sent > ? ", selectionArgs, "date_sent ASC");
-        } catch (SQLiteException e) {
+        } catch (SQLiteException | SecurityException e) {
             try {
                 c = getContentResolver().query(uri, new String[]{"_id", "body", "address", "date"}, "date > ? ", selectionArgs, "date ASC");
                 dateSentNotPresent = true;
@@ -422,6 +343,39 @@ public class SMSReadService extends Service {
                 values.put("parsed", Boolean.valueOf(true));
                 this.smsTable.updateMessage(smsId, values);
             }
+        }
+    }
+
+    private class WalnutServiceHandler extends Handler {
+        private final String TAG;
+        private SMSReadService service;
+
+        public WalnutServiceHandler(Looper looper, SMSReadService service) {
+            super(looper);
+            this.TAG = WalnutServiceHandler.class.getSimpleName();
+            this.service = service;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            handleReadDataAction(msg.arg1, (Intent) msg.obj);
+        }
+
+        private void handleReadDataAction(int startId, Intent intent) {
+            int mode = intent.getExtras().getInt("walnut.service.mode", 0);
+            mParseCancelled = false;
+            if (mode == 1) {
+                long startTime = intent.getExtras().getLong("walnut.service.timestamp", -1);
+                Log.d(TAG, "Read mode  = READ_MODE_FROM_SMS " + startTime);
+                String str = "Pref-LastReadSMS";
+                sp.edit().putLong(str, parseAllSmsFromProvider(startTime, null)).apply();
+            }
+            if (!mParseCancelled) {
+                SMSApplication.broadcastFinish(localBroadcastManager);
+            }
+            stopForeground(true);
+            Log.d(TAG, "All done");
+            service.stopSelf(startId);
         }
     }
 
