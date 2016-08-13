@@ -5,9 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 
 public class ShortSms implements Parcelable {
     public static final Creator<ShortSms> CREATOR;
@@ -26,7 +24,6 @@ public class ShortSms implements Parcelable {
     int accountType;
     String body;
     String category;
-    ChainingRule chainingRule;
     Date date;
     boolean isChainingEnabled;
     Location location;
@@ -208,13 +205,6 @@ public class ShortSms implements Parcelable {
         this.smsPreviousUUID = smsPreviousUUID;
     }
 
-    public ChainingRule getChainingRule() {
-        return this.chainingRule;
-    }
-
-    public void setChainingRule(ChainingRule chainingRule) {
-        this.chainingRule = chainingRule;
-    }
 
     public boolean isChainingEnabled() {
         return this.isChainingEnabled;
@@ -275,30 +265,6 @@ public class ShortSms implements Parcelable {
         return builder.toString();
     }
 
-    public ArrayList<ChainingRule.MatchingCriteria> getParentSelectionCriteriaList() {
-        if (this.chainingRule != null) {
-            return this.chainingRule.getParentSelection();
-        }
-        return null;
-    }
-
-    public boolean shouldDeleteChild() {
-        if (this.chainingRule == null) {
-            return false;
-        }
-        ChainingRule.ParentMatchStatus parentNoMatch = this.chainingRule.getParentNoMatch();
-        if (parentNoMatch == null) {
-            return false;
-        }
-        Iterator it = parentNoMatch.getChildOverride().iterator();
-        while (it.hasNext()) {
-            ChainingRule.MatchingCriteria selection = (ChainingRule.MatchingCriteria) it.next();
-            if (selection.isOverrideDeleted()) {
-                return selection.isOverrideDeleted();
-            }
-        }
-        return false;
-    }
 
     public boolean isAccountEnabled() {
         return this.accountEnabled;

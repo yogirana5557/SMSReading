@@ -1,18 +1,14 @@
 package com.sms.reading.db;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.location.Location;
 import android.util.Log;
 
-import com.sms.reading.model.Account;
 import com.sms.reading.model.ShortSms;
 
 import java.util.Date;
-import java.util.UUID;
 
 public class SmsTable {
     private static final String TAG;
@@ -87,57 +83,6 @@ public class SmsTable {
         return true;
     }
 
-    public long writeSmsToDb(Account account, ShortSms sms, boolean parsed) {
-        ContentValues values = new ContentValues();
-        values.put("sender", sms.getNumber());
-        values.put("date", Long.valueOf(sms.getDate().getTime()));
-        if (isBlackListed(sms.getBody())) {
-            sms.setSmsFlag(sms.getSmsFlag() | 2);
-            values.put("body", "");
-        } else {
-            values.put("body", sms.getBody());
-        }
-        values.put("smsId", Long.valueOf(sms.getSmsId()));
-        values.put("accountId", Integer.valueOf(account.get_id()));
-        values.put("smsFlags", Integer.valueOf(sms.getSmsFlag()));
-        values.put("parsed", Boolean.valueOf(parsed));
-        Location loc = sms.getLocation();
-        if (loc != null) {
-            values.put("lat", Double.valueOf(loc.getLatitude()));
-            values.put("long", Double.valueOf(loc.getLongitude()));
-            values.put("locAccuracy", Float.valueOf(loc.getAccuracy()));
-        }
-        values.put("UUID", UUID.randomUUID().toString());
-        if (!(sms.getRule() == null || sms.getRule().getPatternUID() == 0)) {
-            values.put("patternUID", Long.valueOf(sms.getRule().getPatternUID()));
-        }
-        return this.database.insert("walnutSms", null, values);
-    }
-
-    public int updateMessage(long _id, ContentValues values) {
-        if (_id >= 0) {
-            return this.database.update("walnutSms", values, "_id = " + _id, null);
-        }
-        Log.d(TAG, "****ERROR**** Did not update SMS : " + values);
-        return -1;
-    }
-
-    public ShortSms getSmsById(long _id) {
-        Cursor cursor = this.database.query("walnutSms", this.allColumns, "_id = " + _id, null, null, null, null);
-        if (cursor == null || cursor.getCount() <= 0) {
-            if (cursor != null) {
-                cursor.close();
-            }
-            return null;
-        }
-        cursor.moveToFirst();
-        ShortSms newSms = null;
-        if (!cursor.isAfterLast()) {
-            newSms = cursorToSms(cursor);
-        }
-        cursor.close();
-        return newSms;
-    }
 
     public void refreshTable(SQLiteDatabase database) {
         database.beginTransaction();

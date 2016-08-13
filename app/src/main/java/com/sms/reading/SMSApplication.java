@@ -2,26 +2,17 @@ package com.sms.reading;
 
 import android.app.Application;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.AssetManager;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.sms.reading.db.DBHelper;
-import com.sms.reading.model.Account;
-import com.sms.reading.model.AccountMiscInfo;
 import com.sms.reading.model.Rule;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,7 +37,6 @@ public class SMSApplication extends Application {
     private String bankAliasRegex;
     private String blackList;
     private String cardAliasRegex;
-    private HashMap<String, AccountMiscInfo> mNameAccountMiscMap;
     private DBHelper mDBHelper;
 
     public SMSApplication() {
@@ -126,7 +116,6 @@ public class SMSApplication extends Application {
     private boolean setupRulesMap(String rulesString) {
         try {
             this.mRules = new HashMap<>();
-            this.mNameAccountMiscMap = new HashMap<>();
             JSONObject jSONObject = new JSONObject(rulesString);
             Log.d(TAG, "Using json Rules version : " + jSONObject.getString("version"));
             JSONArray rulesJArray = jSONObject.getJSONArray("rules");
@@ -141,8 +130,6 @@ public class SMSApplication extends Application {
                 boolean isExpenseAcc = senderRuleJObj.optBoolean("set_account_as_expense", true);
                 JSONArray patternsJArray = senderRuleJObj.getJSONArray("patterns");
                 JSONObject preProcessor = senderRuleJObj.optJSONObject("sms_preprocessor");
-                JSONObject miscInfo = senderRuleJObj.optJSONObject("misc_information");
-                this.mNameAccountMiscMap.put(name, getAccountMiscInfoFromJson(miscInfo));
                 ArrayList<Rule> rulesArray = new ArrayList<>();
                 for (j = 0; j < patternsJArray.length(); j++) {
                     JSONObject patternJObj = patternsJArray.getJSONObject(j);
@@ -198,78 +185,4 @@ public class SMSApplication extends Application {
         return this.blackList;
     }
 
-    public AccountMiscInfo getAccountMiscInfo(Account account) {
-        if (account == null) {
-            return null;
-        }
-        try {
-            if (this.mNameAccountMiscMap == null || this.mNameAccountMiscMap.size() == 0) {
-                setupRules();
-            }
-            return (AccountMiscInfo) this.mNameAccountMiscMap.get(account.getName().split(" ")[0].trim());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public AccountMiscInfo getAccountMiscInfoFromJson(JSONObject accountMiscInfo) {
-        if (accountMiscInfo == null) {
-            return null;
-        }
-        try {
-            JSONArray balContactArray = accountMiscInfo.optJSONArray("get_balance");
-            if (balContactArray == null) {
-                return null;
-            }
-            AccountMiscInfo miscInfo = new AccountMiscInfo();
-            List<AccountMiscInfo.GetBalanceInfo> getBalanceInfos = new ArrayList<>();
-            for (int i = 0; i < balContactArray.length(); i++) {
-                AccountMiscInfo.GetBalanceInfo getBalInfo = new AccountMiscInfo.GetBalanceInfo();
-                JSONObject balContactObj = balContactArray.getJSONObject(i);
-                getBalInfo.setAccountType(Account.getAccountTypeInt(balContactObj.optString("account_type")));
-                getBalInfo.setBalContactInfo(getContactInfoFromJson(balContactObj.optString("contact_info")));
-                getBalanceInfos.add(getBalInfo);
-            }
-            miscInfo.setGetBalanceInfo(getBalanceInfos);
-            return miscInfo;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public ArrayList<AccountMiscInfo.BalanceContactInfo> getContactInfoFromJson(String balContactJson) {
-        if (TextUtils.isEmpty(balContactJson)) {
-            return null;
-        }
-        try {
-            JSONArray balanceMiscArray = new JSONArray(balContactJson);
-            if (balanceMiscArray == null) {
-                return null;
-            }
-            ArrayList<AccountMiscInfo.BalanceContactInfo> balContactInfo = new ArrayList<>();
-            for (int i = 0; i < balanceMiscArray.length(); i++) {
-                JSONObject balanceJson = balanceMiscArray.getJSONObject(i);
-                AccountMiscInfo.BalanceContactInfo balanceInfo = null;
-                if (balanceJson != null) {
-                    balanceInfo = new AccountMiscInfo.BalanceContactInfo();
-                    JSONArray numbers = new JSONArray(balanceJson.optString("numbers"));
-                    List<String> numberList = new ArrayList<>();
-                    for (int j = 0; j < numbers.length(); j++) {
-                        numberList.add(numbers.optString(j));
-                    }
-                    balanceInfo.setContact((String[]) numberList.toArray(new String[numberList.size()]));
-                    balanceInfo.setContactType(balanceInfo.getContactTypeInt(balanceJson.optString("type")));
-                    balanceInfo.setContactSmsFormat(balanceJson.optString("format"));
-                    balanceInfo.setBalRefreshText(balanceJson.optString("balance_refresh_text"));
-                }
-                balContactInfo.add(balanceInfo);
-            }
-            return balContactInfo;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 }
