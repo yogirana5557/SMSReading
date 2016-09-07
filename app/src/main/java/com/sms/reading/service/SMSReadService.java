@@ -22,12 +22,13 @@ import android.util.Log;
 import com.sms.reading.SMSApplication;
 import com.sms.reading.db.DBHelper;
 import com.sms.reading.db.SmsTable;
-import com.sms.reading.model.ParseSms;
+import com.sms.reading.model.Rule;
 import com.sms.reading.model.ShortSms;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * Created by Yogi on 30/07/2016.
@@ -171,8 +172,27 @@ public class SMSReadService extends Service {
     }
 
     private ArrayList<ShortSms> parseAndStoreToDB(String number, String body, Date date, long smsId, Location loc, boolean gaHit) {
-        ArrayList<ShortSms> smsList = ParseSms.Parse(this, number, body, date);
+//        ArrayList<ShortSms> smsList = ParseSms.Parse(this, number, body, date);
 //        Log.d(TAG, "" + smsList.toString());
+        ArrayList<ShortSms> smsList = new ArrayList<>();
+        HashMap<String, ArrayList<Rule>> rulesMap = SMSApplication.getInstance().getRules();
+        String[] names = number.split("-");
+        ArrayList<Rule> rules2 = null;
+        if (names.length == 2) {
+            rules2 = (ArrayList) rulesMap.get(names[1]);
+        }
+        if (names.length != 1) {
+            rules2 = (ArrayList) rulesMap.get(number);
+
+        } else if (number.matches("(?i)[0-9]{1,7}\\s*")) {
+            rules2 = (ArrayList) rulesMap.get(names[0]);
+
+        }
+        if (rules2 != null) {
+            ShortSms shortSms = new ShortSms(number, body, date);
+            smsList.add(shortSms);
+        }
+        Log.d(TAG, "Number: " + number);
         return smsList;
     }
 

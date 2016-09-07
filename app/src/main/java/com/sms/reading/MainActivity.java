@@ -7,30 +7,40 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.sms.reading.model.ShortSms;
 import com.sms.reading.service.SMSReadService;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_READ_SMS = 2;
     private static final String TAG = MainActivity.class.getSimpleName();
     private final BroadcastReceiver mWalnutReceiver;
+    ArrayList<ShortSms> smsList;
     private LocalBroadcastManager localBroadcastManager;
     private ProgressBar statusTopProgressBar;
     private TextView statusTopText;
+    private List<String> mProviderList;
 
     public MainActivity() {
         mWalnutReceiver = new BroadcastReceiver() {
@@ -75,9 +85,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         statusTopProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         statusTopText = (TextView) findViewById(R.id.progressText);
-        startService();
-        localBroadcastManager = LocalBroadcastManager.getInstance(this);
-        localBroadcastManager.registerReceiver(mWalnutReceiver, makeWalnutUpdatesIntentFilter());
+//        startService();
+//        localBroadcastManager = LocalBroadcastManager.getInstance(this);
+//        localBroadcastManager.registerReceiver(mWalnutReceiver, makeWalnutUpdatesIntentFilter());
+        mProviderList = new ArrayList<>();
+        mProviderList.add("Amazon");
+        mProviderList.add("IPAYTM");
+
+        readSms();
     }
 
     public void onDestroy() {
@@ -139,4 +154,86 @@ public class MainActivity extends AppCompatActivity {
         startService(walnutServiceIntent);
     }
 
+    private void readSms() {
+        long lastRead;
+        Uri uri = Uri.parse("content://sms/inbox");
+        String[] columns = new String[]{"_id", "body", "address", "date_sent", "date"};
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        cal.set(Calendar.DATE, 0);
+        cal.add(Calendar.MONTH, -6);
+        Log.d(TAG, "Fresh read from provider : reading only last 3 months data : " + cal.getTime() + " : " + new Date(System.currentTimeMillis()));
+//        long date1 = new Date(System.currentTimeMillis() - 30L * 24 * 3600 * 1000).getTime();
+
+        lastRead = cal.getTimeInMillis();
+        String[] selectionArgs = new String[]{String.valueOf(lastRead)};
+        Cursor c = null;
+        boolean dateSentNotPresent = false;
+
+        try {
+            c = getContentResolver().query(uri, columns, "date_sent > ? ", selectionArgs, "date_sent ASC");
+        } catch (SQLiteException | SecurityException e) {
+            try {
+                c = getContentResolver().query(uri, new String[]{"_id", "body", "address", "date"}, "date > ? ", selectionArgs, "date ASC");
+                dateSentNotPresent = true;
+
+            } catch (SecurityException e2) {
+                e.printStackTrace();
+            }
+        }
+        if (c == null) {
+            return;
+        }
+        int totalCount = c.getCount();
+        if (c.getCount() > 0) {
+            Log.d(TAG, "Parsing " + totalCount + " SMSs");
+        }
+        c.moveToFirst();
+        smsList = new ArrayList<>();
+        while (!c.isAfterLast()) {
+            String body = c.getString(c.getColumnIndexOrThrow("body"));
+            String number = c.getString(c.getColumnIndexOrThrow("address"));
+            long smsId = (long) c.getInt(c.getColumnIndexOrThrow("_id"));
+            if (!dateSentNotPresent) {
+                lastRead = c.getLong(c.getColumnIndex("date_sent"));
+                Log.d(TAG, "Reading DATE_SENT " + c.getLong(c.getColumnIndex("date_sent")) + " DATE " + c.getLong(c.getColumnIndexOrThrow("date")));
+            }
+            if (dateSentNotPresent || lastRead <= 0) {
+                lastRead = c.getLong(c.getColumnIndexOrThrow("date"));
+            }
+            Date date = new Date(lastRead);
+
+            if (number == null) {
+                Throwable tr = new IllegalAccessException();
+                Log.d(TAG, "Sms from: " + number + " body: " + body, tr);
+            } else if (body != null) {
+                ShortSms shortSms = parseAndStoreToDB(number, body, date, smsId);
+                if (shortSms != null) {
+                    smsList.add(shortSms);
+                    Log.d(TAG, "" + shortSms.toString());
+                }
+            }
+            c.moveToNext();
+        }
+        c.close();
+    }
+
+    private ShortSms parseAndStoreToDB(String number, String body, Date date, long smsId) {
+        String[] names = number.split("-");
+        boolean matcher = false;
+        if (names.length == 2) {
+            matcher = mProviderList.contains(names[1]);
+        } else if (names.length != 1) {
+            matcher = mProviderList.contains(number);
+
+        } else if (number.matches("(?i)[0-9]{1,7}\\s*")) {
+            matcher = mProviderList.contains(names[0]);
+        }
+        if (matcher) {
+            ShortSms shortSms = new ShortSms(number, body, date);
+            Log.d(TAG, "Number: " + number);
+            return shortSms;
+        }
+        return null;
+    }
 }
